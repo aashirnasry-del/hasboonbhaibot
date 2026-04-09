@@ -2,48 +2,48 @@ const mineflayer = require('mineflayer')
 
 let reconnectDelay = 15000
 let canReconnect = true
+let loggedIn = false
 
 function createBot() {
   const bot = mineflayer.createBot({
-    host: 'PVPpracticeO.aternos.me',
-    port: 60322,
-    username: 'mr_beast'
+    host: 'YOUR_SERVER_IP',
+    port: 25565,
+    username: 'Bot123'
   })
 
   console.log("Bot starting...")
 
   // =========================
-  // JOIN EVENT
+  // WHEN BOT JOINS
   // =========================
   bot.on('spawn', () => {
     console.log("✅ Bot joined server!")
 
-    reconnectDelay = 15000 // reset delay when successful
+    loggedIn = false
+    reconnectDelay = 15000
 
-    // login/register timing (SimpleLogin)
+    // LOGIN ONLY ONCE
     setTimeout(() => {
-      bot.chat('/register 123456 123456')
-    }, 4000)
-
-    setTimeout(() => {
-      bot.chat('/login 123456')
-    }, 8000)
+      if (!loggedIn) {
+        bot.chat('/login 123456')
+        loggedIn = true
+      }
+    }, 5000)
 
     startRandomMovement(bot)
   })
 
   // =========================
-  // REGISTER / LOGIN LISTENER
+  // SMART LOGIN DETECTOR
   // =========================
   bot.on('messagestr', (msg) => {
     const m = msg.toLowerCase()
 
-    if (m.includes('register')) {
-      setTimeout(() => bot.chat('/register 123456 123456'), 3000)
-    }
-
-    if (m.includes('login')) {
-      setTimeout(() => bot.chat('/login 123456'), 3000)
+    if (!loggedIn && m.includes('login')) {
+      setTimeout(() => {
+        bot.chat('/login 123456')
+        loggedIn = true
+      }, 3000)
     }
   })
 
@@ -85,10 +85,8 @@ function createBot() {
       createBot()
     }, reconnectDelay)
 
-    // increase delay to avoid throttle
     reconnectDelay = Math.min(reconnectDelay + 10000, 60000)
 
-    // cooldown unlock
     setTimeout(() => {
       canReconnect = true
     }, 20000)
