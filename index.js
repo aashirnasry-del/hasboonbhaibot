@@ -4,9 +4,9 @@ let reconnectDelay = 3000 // start fast
 
 function createBot() {
   const bot = mineflayer.createBot({
-    host: 'YOUR_SERVER_IP',
-    port: 25565,
-    username: 'Bot123'
+    host: 'PVPpracticeO.aternos.me',
+    port: 60322,
+    username: 'mr_beast'
   })
 
   // When bot joins
@@ -16,7 +16,7 @@ function createBot() {
 
     // Login after join
     setTimeout(() => {
-      bot.chat('/login 123456')
+      bot.chat('/login beast123')
     }, 2000)
 
     // Start random movement
@@ -28,11 +28,11 @@ function createBot() {
     const msg = message.toLowerCase()
 
     if (msg.includes('register')) {
-      bot.chat('/register 123456 123456')
+      bot.chat('/register beast123 beast123')
     }
 
     if (msg.includes('login')) {
-      bot.chat('/login 123456')
+      bot.chat('/login beast123')
     }
   })
 
