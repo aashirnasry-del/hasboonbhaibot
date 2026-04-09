@@ -1,6 +1,7 @@
 const mineflayer = require('mineflayer')
 
-let reconnectDelay = 3000 // start fast
+let reconnectDelay = 15000
+let canReconnect = true
 
 function createBot() {
   const bot = mineflayer.createBot({
@@ -9,41 +10,50 @@ function createBot() {
     username: 'mr_beast'
   })
 
-  // When bot joins
-  bot.on('spawn', () => {
-    console.log('✅ Bot joined!')
-    reconnectDelay = 3000
+  console.log("Bot starting...")
 
-    // Login after join
+  // =========================
+  // JOIN EVENT
+  // =========================
+  bot.on('spawn', () => {
+    console.log("✅ Bot joined server!")
+
+    reconnectDelay = 15000 // reset delay when successful
+
+    // login/register timing (SimpleLogin)
+    setTimeout(() => {
+      bot.chat('/register 123456')
+    }, 4000)
+
     setTimeout(() => {
       bot.chat('/login 123456')
-    }, 2000)
+    }, 8000)
 
-    // Start random movement
-    startRandomMovement()
+    startRandomMovement(bot)
   })
 
-  // Auto register/login detection
-  bot.on('messagestr', (message) => {
-    const msg = message.toLowerCase()
+  // =========================
+  // REGISTER / LOGIN LISTENER
+  // =========================
+  bot.on('messagestr', (msg) => {
+    const m = msg.toLowerCase()
 
-    if (msg.includes('register')) {
-      bot.chat('/register 123456 123456')
+    if (m.includes('register')) {
+      setTimeout(() => bot.chat('/register 123456'), 3000)
     }
 
-    if (msg.includes('login')) {
-      bot.chat('/login 123456')
+    if (m.includes('login')) {
+      setTimeout(() => bot.chat('/login 123456'), 3000)
     }
   })
 
-  // Light chat every 90 sec
-  setInterval(() => {
-    bot.chat('still here :)')
-  }, 90000)
-
-  // 🎮 Random Movement System
-  function startRandomMovement() {
+  // =========================
+  // RANDOM MOVEMENT
+  // =========================
+  function startRandomMovement(bot) {
     setInterval(() => {
+      if (!bot || !bot.entity) return
+
       const actions = ['forward', 'back', 'left', 'right', 'jump']
       const action = actions[Math.floor(Math.random() * actions.length)]
       const duration = Math.floor(Math.random() * 2000) + 1000
@@ -54,31 +64,58 @@ function createBot() {
         bot.setControlState(action, false)
       }, duration)
 
-      // Random look
       const yaw = Math.random() * Math.PI * 2
       const pitch = (Math.random() - 0.5) * Math.PI / 2
       bot.look(yaw, pitch, true)
 
-    }, 5000)
+    }, 6000)
   }
 
-  // 🔁 Smart reconnect
+  // =========================
+  // SAFE RECONNECT SYSTEM
+  // =========================
   function reconnect() {
-    console.log(`🔄 Reconnecting in ${reconnectDelay / 1000}s...`)
-    setTimeout(createBot, reconnectDelay)
+    if (!canReconnect) return
 
-    reconnectDelay = Math.min(reconnectDelay + 2000, 15000)
+    canReconnect = false
+
+    console.log(`🔄 Reconnecting in ${reconnectDelay / 1000}s...`)
+
+    setTimeout(() => {
+      createBot()
+    }, reconnectDelay)
+
+    // increase delay to avoid throttle
+    reconnectDelay = Math.min(reconnectDelay + 10000, 60000)
+
+    // cooldown unlock
+    setTimeout(() => {
+      canReconnect = true
+    }, 20000)
   }
 
-  bot.on('end', reconnect)
-
-  bot.on('kicked', (reason) => {
-    console.log('❌ Kicked:', reason)
+  // =========================
+  // EVENTS
+  // =========================
+  bot.on('end', () => {
+    console.log("❌ Disconnected")
     reconnect()
   })
 
+  bot.on('kicked', (reason) => {
+    console.log("❌ Kicked:", reason)
+
+    setTimeout(() => {
+      reconnect()
+    }, 20000)
+  })
+
   bot.on('error', (err) => {
-    console.log('⚠️ Error:', err.message)
+    console.log("⚠️ Error:", err.message)
+
+    setTimeout(() => {
+      reconnect()
+    }, 20000)
   })
 }
 
