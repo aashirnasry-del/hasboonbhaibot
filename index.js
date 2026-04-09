@@ -6,9 +6,9 @@ let loggedIn = false
 
 function createBot() {
   const bot = mineflayer.createBot({
-    host: 'YOUR_SERVER_IP',
-    port: 25565,
-    username: 'Bot123'
+    host: 'PVPpracticeO.aternos.me',
+    port: 60322,
+    username: 'mr_beast'
   })
 
   console.log("Bot starting...")
@@ -25,7 +25,7 @@ function createBot() {
     // LOGIN ONLY ONCE
     setTimeout(() => {
       if (!loggedIn) {
-        bot.chat('/login 123456')
+        bot.chat('/login beast123')
         loggedIn = true
       }
     }, 5000)
@@ -41,7 +41,7 @@ function createBot() {
 
     if (!loggedIn && m.includes('login')) {
       setTimeout(() => {
-        bot.chat('/login 123456')
+        bot.chat('/login beast123')
         loggedIn = true
       }, 3000)
     }
