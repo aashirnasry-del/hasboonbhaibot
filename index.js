@@ -16,7 +16,7 @@ function createBot() {
 
     // Login after join
     setTimeout(() => {
-      bot.chat('/login beast123')
+      bot.chat('/login 123456')
     }, 2000)
 
     // Start random movement
@@ -28,11 +28,11 @@ function createBot() {
     const msg = message.toLowerCase()
 
     if (msg.includes('register')) {
-      bot.chat('/register beast123 beast123')
+      bot.chat('/register 123456 123456')
     }
 
     if (msg.includes('login')) {
-      bot.chat('/login beast123')
+      bot.chat('/login 123456')
     }
   })
 
