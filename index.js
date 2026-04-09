@@ -22,7 +22,7 @@ function createBot() {
 
     // login/register timing (SimpleLogin)
     setTimeout(() => {
-      bot.chat('/register 123456')
+      bot.chat('/register 123456 123456')
     }, 4000)
 
     setTimeout(() => {
@@ -39,7 +39,7 @@ function createBot() {
     const m = msg.toLowerCase()
 
     if (m.includes('register')) {
-      setTimeout(() => bot.chat('/register 123456'), 3000)
+      setTimeout(() => bot.chat('/register 123456 123456'), 3000)
     }
 
     if (m.includes('login')) {
