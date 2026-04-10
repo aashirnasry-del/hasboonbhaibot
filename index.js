@@ -43,11 +43,11 @@ function createBot() {
     }
 
     // LOGIN ONLY ONCE
-bot.on('spawn', () => {
-  setTimeout(() => {
-    bot.chat('/login beast123')
-  }, 3000)
-})
+ setInterval(() => {
+  if (!loggedIn) {
+    bot.chat(`/login ${hasboon99}`)
+  }
+}, 8000)
 
   // =========================
   // AUTO CHAT EVERY 20 MIN
