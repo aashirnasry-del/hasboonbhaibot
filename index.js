@@ -9,7 +9,7 @@ function createBot() {
   const bot = mineflayer.createBot({
     host: 'PVPpracticeO.aternos.me',
     port: 60322,
-    username: 'HasboonBotYT'
+    username: 'HasboonBotYT_99'
   })
 
   console.log("Bot starting...")
