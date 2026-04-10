@@ -2,6 +2,7 @@ const mineflayer = require('mineflayer')
 
 const HOST = 'PVPpracticeO.aternos.me'
 const PORT = 60322
+
 const USERNAME = 'HasboonBotYT_99'
 const PASSWORD = 'hasboon99'
 
@@ -16,30 +17,28 @@ function createBot () {
     username: USERNAME
   })
 
-  console.log('🔄 Bot starting...')
+  console.log('🔄 Starting bot...')
 
   bot.on('spawn', () => {
-    console.log('✅ Bot spawned in server')
+    console.log('✅ Bot spawned')
     loggedIn = false
 
-    // try login after spawn
+    // wait before login (important for SimpleLogin plugin)
     setTimeout(() => {
-      if (!loggedIn) {
-        bot.chat(`/login ${PASSWORD}`)
-        console.log('🔐 Sent login command')
-      }
-    }, 4000)
+      bot.chat(`/login ${PASSWORD}`)
+      console.log('🔐 Login sent')
+    }, 6000)
 
-    // message every 20 minutes
+    // chat every 20 minutes
     setInterval(() => {
-      if (bot && loggedIn) {
+      if (loggedIn && bot.entity) {
         bot.chat('subscribe to hasboonbhai')
       }
     }, 20 * 60 * 1000)
 
-    // light random movement
+    // light movement (anti-AFK)
     setInterval(() => {
-      if (!bot || !loggedIn) return
+      if (!loggedIn || !bot.entity) return
 
       const yaw = Math.random() * Math.PI * 2
       bot.look(yaw, 0)
@@ -52,18 +51,17 @@ function createBot () {
     }, 30000)
   })
 
-  // detect messages (login system)
+  // detect login messages
   bot.on('messagestr', (msg) => {
     const text = msg.toLowerCase()
 
-    if (!loggedIn && (text.includes('login') || text.includes('password'))) {
-      bot.chat(`/login ${PASSWORD}`)
-      console.log('🔐 Auto login sent')
-    }
-
     if (text.includes('logged in') || text.includes('successfully')) {
       loggedIn = true
-      console.log('✅ Login successful')
+      console.log('✅ Login confirmed')
+    }
+
+    if (text.includes('wrong') || text.includes('incorrect')) {
+      console.log('❌ Login failed (check password)')
     }
   })
 
