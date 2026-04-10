@@ -1,6 +1,6 @@
 const mineflayer = require('mineflayer')
 
-let reconnectDelay = 15000
+let reconnectDelay = 30000 // 30 sec
 let canReconnect = true
 let loggedIn = false
 let registered = false
