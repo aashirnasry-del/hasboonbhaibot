@@ -1,6 +1,6 @@
 const mineflayer = require('mineflayer')
 
-const HOST = 'PVPpracticeO.aternos.me'
+const HOST = 'lapatasmp.aternos.me'
 const PORT = 60322
 
 const USERNAME = 'HasboonBotYT_99'
