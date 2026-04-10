@@ -3,12 +3,13 @@ const mineflayer = require('mineflayer')
 let reconnectDelay = 15000
 let canReconnect = true
 let loggedIn = false
+let registered = false
 
 function createBot() {
   const bot = mineflayer.createBot({
     host: 'PVPpracticeO.aternos.me',
     port: 60322,
-    username: 'itzlord90'
+    username: 'HasboonBotYT'
   })
 
   console.log("Bot starting...")
@@ -22,30 +23,47 @@ function createBot() {
     loggedIn = false
     reconnectDelay = 15000
 
-    // LOGIN ONLY ONCE
-    setTimeout(() => {
-      if (!loggedIn) {
-        bot.chat('/login itzlord')
-        loggedIn = true
-      }
-    }, 5000)
-
+    startChatSpam(bot)
     startRandomMovement(bot)
   })
 
   // =========================
-  // SMART LOGIN DETECTOR
+  // LOGIN / REGISTER SYSTEM
   // =========================
   bot.on('messagestr', (msg) => {
     const m = msg.toLowerCase()
 
-    if (!loggedIn && m.includes('login')) {
+    // REGISTER ONLY IF NEEDED (FIRST TIME)
+    if (!registered && m.includes('register')) {
+      console.log("Registering...")
       setTimeout(() => {
-        bot.chat('/login itzlord')
+        bot.chat('/register hasboon99 hasboon99')
+        registered = true
+      }, 4000)
+    }
+
+    // LOGIN ONLY ONCE
+    if (!loggedIn && m.includes('login')) {
+      console.log("Logging in...")
+      setTimeout(() => {
+        bot.chat('/login hasboon99')
         loggedIn = true
       }, 3000)
     }
   })
+
+  // =========================
+  // AUTO CHAT EVERY 20 MIN
+  // =========================
+  function startChatSpam(bot) {
+    setInterval(() => {
+      if (!bot || !bot.entity) return
+
+      bot.chat('subscribe to hasboonbhai')
+      console.log("📢 Sent promo message")
+
+    }, 20 * 60 * 1000) // 20 minutes
+  }
 
   // =========================
   // RANDOM MOVEMENT
