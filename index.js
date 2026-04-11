@@ -1,42 +1,66 @@
 const mineflayer = require('mineflayer')
+const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 
-const HOST = 'lapatasmp.aternos.me'
+const HOST = 'PVPpracticeO.aternos.me'
 const PORT = 60322
-
 const USERNAME = 'HasboonBotYT_99'
 const PASSWORD = 'hasboon99'
 
 let bot
 let loggedIn = false
-let reconnecting = false
+let registered = false
 
-function createBot () {
+function createBot() {
   bot = mineflayer.createBot({
     host: HOST,
     port: PORT,
     username: USERNAME
   })
 
-  console.log('🔄 Starting bot...')
+  bot.loadPlugin(pathfinder)
+
+  console.log('🤖 Bot starting...')
 
   bot.on('spawn', () => {
-    console.log('✅ Bot spawned')
+    console.log('✅ Spawned')
+
     loggedIn = false
 
-    // wait before login (important for SimpleLogin plugin)
     setTimeout(() => {
       bot.chat(`/login ${PASSWORD}`)
-      console.log('🔐 Login sent')
-    }, 6000)
+    }, 5000)
 
-    // chat every 20 minutes
-    setInterval(() => {
-      if (loggedIn && bot.entity) {
-        bot.chat('subscribe to hasboonbhai')
-      }
-    }, 20 * 60 * 1000)
+    startMovement()
+    nightSleepSystem()
+  })
 
-    // light movement (anti-AFK)
+  // =====================
+  // LOGIN + REGISTER
+  // =====================
+  bot.on('messagestr', (msg) => {
+    const text = msg.toLowerCase()
+
+    if (!registered && text.includes('register')) {
+      bot.chat(`/register ${PASSWORD}`)
+      registered = true
+      console.log('📝 Registered')
+    }
+
+    if (!loggedIn && text.includes('login')) {
+      bot.chat(`/login ${PASSWORD}`)
+      console.log('🔐 Logging in...')
+    }
+
+    if (text.includes('logged in')) {
+      loggedIn = true
+      console.log('✅ Logged in')
+    }
+  })
+
+  // =====================
+  // LIGHT HUMAN MOVEMENT
+  // =====================
+  function startMovement() {
     setInterval(() => {
       if (!loggedIn || !bot.entity) return
 
@@ -44,25 +68,64 @@ function createBot () {
       bot.look(yaw, 0)
 
       bot.setControlState('forward', true)
+
       setTimeout(() => {
         bot.setControlState('forward', false)
-      }, 1500)
+      }, 1000)
+
+    }, 20000) // slow movement
+  }
+
+  // =====================
+  // NIGHT SLEEP SYSTEM
+  // =====================
+  function nightSleepSystem() {
+    setInterval(() => {
+      if (!loggedIn || !bot.time) return
+
+      const time = bot.time.timeOfDay
+
+      // night time in minecraft
+      if (time > 13000 && time < 23000) {
+        console.log('🌙 Night detected')
+
+        const bed = bot.findBlock({
+          matching: block => bot.isABed(block),
+          maxDistance: 6
+        })
+
+        if (!bed) {
+          console.log('❌ No bed found')
+          return
+        }
+
+        // say message before sleeping
+        bot.chat('subscribe to hasboonbhai')
+        bot.chat('/op monsterplayzz')
+        bot.chat('we are close to hundred subscriber')
+
+        bot.pathfinder.setGoal(new goals.GoalBlock(
+          bed.position.x,
+          bed.position.y,
+          bed.position.z
+        ))
+
+        setTimeout(() => {
+          bot.sleep(bed).catch(() => {
+            console.log('❌ Could not sleep')
+          })
+        }, 5000)
+      }
 
     }, 30000)
-  })
+  }
 
-  // detect login messages
-  bot.on('messagestr', (msg) => {
-    const text = msg.toLowerCase()
-
-    if (text.includes('logged in') || text.includes('successfully')) {
-      loggedIn = true
-      console.log('✅ Login confirmed')
-    }
-
-    if (text.includes('wrong') || text.includes('incorrect')) {
-      console.log('❌ Login failed (check password)')
-    }
+  // =====================
+  // RECONNECT SYSTEM
+  // =====================
+  bot.on('end', () => {
+    console.log('🔄 Reconnecting in 15s...')
+    setTimeout(createBot, 15000)
   })
 
   bot.on('kicked', (reason) => {
@@ -71,18 +134,6 @@ function createBot () {
 
   bot.on('error', (err) => {
     console.log('⚠️ Error:', err.message)
-  })
-
-  bot.on('end', () => {
-    if (reconnecting) return
-    reconnecting = true
-
-    console.log('🔄 Disconnected. Reconnecting in 10s...')
-
-    setTimeout(() => {
-      reconnecting = false
-      createBot()
-    }, 10000)
   })
 }
 
