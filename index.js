@@ -2,122 +2,87 @@ const mineflayer = require('mineflayer')
 
 const HOST = 'PVPpracticeO.aternos.me'
 const PORT = 60322
+
 const USERNAME = 'HasboonBotYT_99'
 const PASSWORD = 'hasboon99'
 
 let bot
 let loggedIn = false
-let registered = false
+let reconnecting = false
 
-function createBot() {
+function createBot () {
   bot = mineflayer.createBot({
     host: HOST,
     port: PORT,
     username: USERNAME
   })
 
-  console.log('🤖 Bot starting...')
+  console.log('🔄 Starting bot...')
 
   bot.on('spawn', () => {
-    console.log('✅ Spawned')
+    console.log('✅ Bot spawned')
+    loggedIn = false
 
+    // wait before login (important for SimpleLogin plugin)
     setTimeout(() => {
       bot.chat(`/login ${PASSWORD}`)
-    }, 5000)
+      console.log('🔐 Login sent')
+    }, 6000)
 
-    lookAtPlayers()
-    lightMovement()
-    chatSystem()
+    // chat every 20 minutes
+    setInterval(() => {
+      if (loggedIn && bot.entity) {
+        bot.chat('subscribe to hasboonbhai')
+      }
+    }, 20 * 60 * 1000)
+
+    // light movement (anti-AFK)
+    setInterval(() => {
+      if (!loggedIn || !bot.entity) return
+
+      const yaw = Math.random() * Math.PI * 2
+      bot.look(yaw, 0)
+
+      bot.setControlState('forward', true)
+      setTimeout(() => {
+        bot.setControlState('forward', false)
+      }, 1500)
+
+    }, 30000)
   })
 
-  // =====================
-  // LOGIN + REGISTER
-  // =====================
+  // detect login messages
   bot.on('messagestr', (msg) => {
     const text = msg.toLowerCase()
 
-    if (!registered && text.includes('register')) {
-      bot.chat(`/register ${PASSWORD}`)
-      registered = true
-      console.log('📝 Registered')
-    }
-
-    if (!loggedIn && text.includes('login')) {
-      bot.chat(`/login ${PASSWORD}`)
-      console.log('🔐 Logging in...')
-    }
-
-    if (text.includes('logged')) {
+    if (text.includes('logged in') || text.includes('successfully')) {
       loggedIn = true
-      console.log('✅ Logged in')
+      console.log('✅ Login confirmed')
+    }
+
+    if (text.includes('wrong') || text.includes('incorrect')) {
+      console.log('❌ Login failed (check password)')
     }
   })
 
-  // =====================
-  // LOOK AT NEAREST PLAYER 👀
-  // =====================
-  function lookAtPlayers() {
-    setInterval(() => {
-      if (!loggedIn || !bot.entity) return
-
-      const players = Object.values(bot.players)
-        .filter(p => p.entity)
-
-      if (players.length === 0) return
-
-      const target = players[Math.floor(Math.random() * players.length)]
-
-      bot.lookAt(target.entity.position.offset(0, 1.6, 0))
-
-    }, 5000)
-  }
-
-  // =====================
-  // SMALL MOVEMENT (ANTI BOT)
-  // =====================
-  function lightMovement() {
-    setInterval(() => {
-      if (!loggedIn || !bot.entity) return
-
-      const actions = ['forward', 'left', 'right']
-      const action = actions[Math.floor(Math.random() * actions.length)]
-
-      bot.setControlState(action, true)
-
-      setTimeout(() => {
-        bot.setControlState(action, false)
-      }, 800)
-
-    }, 20000)
-  }
-
-  // =====================
-  // CHAT SYSTEM
-  // =====================
-  function chatSystem() {
-    setInterval(() => {
-      if (!loggedIn) return
-
-      bot.chat('subscribe to hasboonbhai')
-      bot.chat('we are close to hundred subscriber')
-
-    }, 20 * 60 * 1000)
-  }
-
-  // =====================
-  // RECONNECT
-  // =====================
-  bot.on('end', () => {
-    console.log('🔄 Reconnecting...')
-    setTimeout(createBot, 15000)
+  bot.on('kicked', (reason) => {
+    console.log('❌ Kicked:', reason)
   })
 
   bot.on('error', (err) => {
     console.log('⚠️ Error:', err.message)
   })
 
-  bot.on('kicked', (reason) => {
-    console.log('❌ Kicked:', reason)
+  bot.on('end', () => {
+    if (reconnecting) return
+    reconnecting = true
+
+    console.log('🔄 Disconnected. Reconnecting in 10s...')
+
+    setTimeout(() => {
+      reconnecting = false
+      createBot()
+    }, 10000)
   })
 }
 
