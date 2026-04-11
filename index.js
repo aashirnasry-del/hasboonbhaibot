@@ -1,5 +1,4 @@
 const mineflayer = require('mineflayer')
-const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 
 const HOST = 'PVPpracticeO.aternos.me'
 const PORT = 60322
@@ -17,21 +16,18 @@ function createBot() {
     username: USERNAME
   })
 
-  bot.loadPlugin(pathfinder)
-
   console.log('🤖 Bot starting...')
 
   bot.on('spawn', () => {
     console.log('✅ Spawned')
 
-    loggedIn = false
-
     setTimeout(() => {
       bot.chat(`/login ${PASSWORD}`)
     }, 5000)
 
-    startMovement()
-    nightSleepSystem()
+    lookAtPlayers()
+    lightMovement()
+    chatSystem()
   })
 
   // =====================
@@ -51,89 +47,77 @@ function createBot() {
       console.log('🔐 Logging in...')
     }
 
-    if (text.includes('logged in')) {
+    if (text.includes('logged')) {
       loggedIn = true
       console.log('✅ Logged in')
     }
   })
 
   // =====================
-  // LIGHT HUMAN MOVEMENT
+  // LOOK AT NEAREST PLAYER 👀
   // =====================
-  function startMovement() {
+  function lookAtPlayers() {
     setInterval(() => {
       if (!loggedIn || !bot.entity) return
 
-      const yaw = Math.random() * Math.PI * 2
-      bot.look(yaw, 0)
+      const players = Object.values(bot.players)
+        .filter(p => p.entity)
 
-      bot.setControlState('forward', true)
+      if (players.length === 0) return
+
+      const target = players[Math.floor(Math.random() * players.length)]
+
+      bot.lookAt(target.entity.position.offset(0, 1.6, 0))
+
+    }, 5000)
+  }
+
+  // =====================
+  // SMALL MOVEMENT (ANTI BOT)
+  // =====================
+  function lightMovement() {
+    setInterval(() => {
+      if (!loggedIn || !bot.entity) return
+
+      const actions = ['forward', 'left', 'right']
+      const action = actions[Math.floor(Math.random() * actions.length)]
+
+      bot.setControlState(action, true)
 
       setTimeout(() => {
-        bot.setControlState('forward', false)
-      }, 1000)
+        bot.setControlState(action, false)
+      }, 800)
 
-    }, 20000) // slow movement
+    }, 20000)
   }
 
   // =====================
-  // NIGHT SLEEP SYSTEM
+  // CHAT SYSTEM
   // =====================
-  function nightSleepSystem() {
+  function chatSystem() {
     setInterval(() => {
-      if (!loggedIn || !bot.time) return
+      if (!loggedIn) return
 
-      const time = bot.time.timeOfDay
+      bot.chat('subscribe to hasboonbhai')
+      bot.chat('we are close to hundred subscriber')
 
-      // night time in minecraft
-      if (time > 13000 && time < 23000) {
-        console.log('🌙 Night detected')
-
-        const bed = bot.findBlock({
-          matching: block => bot.isABed(block),
-          maxDistance: 6
-        })
-
-        if (!bed) {
-          console.log('❌ No bed found')
-          return
-        }
-
-        // say message before sleeping
-        bot.chat('subscribe to hasboonbhai')
-        bot.chat('/op monsterplayzz')
-        bot.chat('we are close to hundred subscriber')
-
-        bot.pathfinder.setGoal(new goals.GoalBlock(
-          bed.position.x,
-          bed.position.y,
-          bed.position.z
-        ))
-
-        setTimeout(() => {
-          bot.sleep(bed).catch(() => {
-            console.log('❌ Could not sleep')
-          })
-        }, 5000)
-      }
-
-    }, 30000)
+    }, 20 * 60 * 1000)
   }
 
   // =====================
-  // RECONNECT SYSTEM
+  // RECONNECT
   // =====================
   bot.on('end', () => {
-    console.log('🔄 Reconnecting in 15s...')
+    console.log('🔄 Reconnecting...')
     setTimeout(createBot, 15000)
-  })
-
-  bot.on('kicked', (reason) => {
-    console.log('❌ Kicked:', reason)
   })
 
   bot.on('error', (err) => {
     console.log('⚠️ Error:', err.message)
+  })
+
+  bot.on('kicked', (reason) => {
+    console.log('❌ Kicked:', reason)
   })
 }
 
